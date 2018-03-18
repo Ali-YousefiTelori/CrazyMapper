@@ -9,6 +9,7 @@ namespace CrazyMapper
     {
         internal Dictionary<Type, Type> BindedSystem { get; set; } = new Dictionary<Type, Type>();
         internal Dictionary<Type, Action<object, object>> DefaultAfterInstanceSystem = new Dictionary<Type, Action<object, object>>();
+        static Dictionary<Type, Action<object, object>> DefaultAfterSetParametersSystem = new Dictionary<Type, Action<object, object>>();
 
         internal Dictionary<object, object> MappedItems = new Dictionary<object, object>();
 
@@ -18,10 +19,11 @@ namespace CrazyMapper
         }
 
 
-        public MapInfo(Dictionary<Type, Type> bindedSystem, Dictionary<Type, Action<object, object>> afterInstanceSystem)
+        public MapInfo(Dictionary<Type, Type> bindedSystem, Dictionary<Type, Action<object, object>> afterInstanceSystem, Dictionary<Type, Action<object, object>> afterSetParametersSystem)
         {
             BindedSystem = bindedSystem;
             DefaultAfterInstanceSystem = afterInstanceSystem;
+            DefaultAfterSetParametersSystem = afterSetParametersSystem;
         }
 
         public T MapObject<T>(T targetType, object source, object parent = null)
@@ -93,7 +95,8 @@ namespace CrazyMapper
                     }
                 }
             }
-            
+            if (DefaultAfterSetParametersSystem.ContainsKey(target.GetType()))
+                DefaultAfterSetParametersSystem[target.GetType()].Invoke(target, parent);
             return target;
         }
 
@@ -117,7 +120,8 @@ namespace CrazyMapper
             {
                 target.Add(MapObject(keyType, item.Key, parent), MapObject(valueType, item.Value, parent));
             }
-
+            if (DefaultAfterSetParametersSystem.ContainsKey(instance.GetType()))
+                DefaultAfterSetParametersSystem[instance.GetType()].Invoke(instance, parent);
             return target;
         }
 
@@ -153,6 +157,8 @@ namespace CrazyMapper
                     }
                 }
             }
+            if (DefaultAfterSetParametersSystem.ContainsKey(instance.GetType()))
+                DefaultAfterSetParametersSystem[instance.GetType()].Invoke(instance, parent);
             return instance;
         }
 

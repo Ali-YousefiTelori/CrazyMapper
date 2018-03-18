@@ -6,15 +6,17 @@ using System.Text;
 namespace CrazyMapper
 {
     public delegate void AfterInstance<TTarget>(TTarget target, object parent);
+    public delegate void AfterSetParameters<TTarget>(TTarget target, object parent);
 
     public static class Mapper
     {
         static Dictionary<Type, Type> DefaultBindedSystem = new Dictionary<Type, Type>();
         static Dictionary<Type, Action<object, object>> DefaultAfterInstanceSystem = new Dictionary<Type, Action<object, object>>();
+        static Dictionary<Type, Action<object, object>> DefaultAfterSetParametersSystem = new Dictionary<Type, Action<object, object>>();
 
         public static T Map<T>(object source)
         {
-            using (var map = new MapInfo(DefaultBindedSystem, DefaultAfterInstanceSystem))
+            using (var map = new MapInfo(DefaultBindedSystem, DefaultAfterInstanceSystem, DefaultAfterSetParametersSystem))
             {
                 var result = map.MapObject(typeof(T), source);
                 return (T)result;
@@ -31,6 +33,16 @@ namespace CrazyMapper
             if (action == null)
                 throw new Exception("cannot set nul value of action!");
             DefaultAfterInstanceSystem[typeof(TTarget)] = (obj, parent) =>
+            {
+                action((TTarget)obj, parent);
+            };
+        }
+
+        public static void AfterSetParameters<TTarget>(AfterSetParameters<TTarget> action)
+        {
+            if (action == null)
+                throw new Exception("cannot set nul value of action!");
+            DefaultAfterSetParametersSystem[typeof(TTarget)] = (obj, parent) =>
             {
                 action((TTarget)obj, parent);
             };
