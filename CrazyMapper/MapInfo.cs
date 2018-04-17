@@ -69,11 +69,15 @@ namespace CrazyMapper
             if (DefaultAfterInstanceSystem.ContainsKey(target.GetType()))
                 DefaultAfterInstanceSystem[target.GetType()].Invoke(target, parent);
             MappedItems[source] = target;
-            foreach (var targetProperty in target.GetType().GetProperties(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public))
+            foreach (var targetProperty in target.GetType().GetProperties(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic))
             {
+                if (targetProperty.Name == "PathInfo")
+                {
+
+                }
                 if (!targetProperty.CanRead)
                     continue;
-                var sourceProperty = typeOfSource.GetProperty(targetProperty.Name, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public);
+                var sourceProperty = typeOfSource.GetProperty(targetProperty.Name, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
                 if (sourceProperty == null || !targetProperty.CanWrite)
                     continue;
                 if (sourceProperty.PropertyType == targetProperty.PropertyType)
@@ -138,7 +142,7 @@ namespace CrazyMapper
             MappedItems[fromValue] = instance;
             var genericType = instance.GetType().GetGenericArguments().FirstOrDefault();
             var target = (System.Collections.IEnumerable)instance;
-            var addMethod = target.GetType().GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public).FirstOrDefault(x => x.Name == "Add" && x.GetParameters().Count() == 1);
+            var addMethod = target.GetType().GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic).FirstOrDefault(x => x.Name == "Add" && x.GetParameters().Count() == 1);
             foreach (var item in (System.Collections.IEnumerable)fromValue)
             {
                 if (item == null)
